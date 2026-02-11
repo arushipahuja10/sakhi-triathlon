@@ -34,8 +34,20 @@
                 <button id="recordBtn" class="bg-danger text-white rounded-full w-14 h-14 text-2xl shadow-md flex items-center justify-center mx-auto transition-all">🎤</button>
                 <p id="emgStatus" class="text-danger text-xs font-bold mt-2 hidden">Recording... Tap to stop.</p>
             </div>
-
+            <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-6 text-left">
+                <h3 id="helpTitle" class="text-blue-800 font-bold text-sm mb-1">🫂 Talk to a Counselor (Free & Anonymous)</h3>
+                <p id="helpDesc" class="text-xs text-blue-600 mb-3">No login needed. We are here to listen.</p>
+                <div class="flex flex-col gap-2">
+                    <a href="tel:9652321303" class="w-full bg-white border border-blue-200 text-blue-700 font-bold py-3 px-4 rounded-xl shadow-sm flex items-center gap-3 hover:bg-blue-100">
+                        <span class="text-2xl">📞</span> <span id="helpCall">Call Helpline (9652321303)</span>
+                    </a>
+                    <a href="https://wa.me/919652321303?text=Mujhe%20madad%20chahiye" target="_blank" class="w-full bg-green-50 border border-green-200 text-green-700 font-bold py-3 px-4 rounded-xl shadow-sm flex items-center gap-3 hover:bg-green-100">
+                        <span class="text-2xl">💬</span> <span id="helpWA">WhatsApp Didi</span>
+                    </a>
+                </div>
+            </div>
             <h2 id="roleTitle" class="text-xl font-bold mb-4">Who is logging in?</h2>
+            
             <button onclick="goToStep('auth-worker')" id="roleWorker" class="w-full bg-primary text-white text-xl font-bold py-4 rounded-3xl mb-3 shadow-sm">👩‍🏭 Worker</button>
             <button onclick="goToStep('auth-admin')" id="roleAdmin" class="w-full bg-accent text-gray-800 text-xl font-bold py-4 rounded-3xl shadow-sm">💼 Admin</button>
         </div>
@@ -137,7 +149,8 @@
                 s1Title: "1. What happened?", msgS1: "🌸 Take a deep breath. No one will know it's you.", s1Touch: "Touch", s1Words: "Words", s1Threat: "Threat", s1Other: "Other",
                 s2Title: "2. Details", msgS2: "🫂 Share only what you feel comfortable sharing.", s2Who: "Who did this? (Name - Optional)", s2Dept: "Department", s2Place: "Exact Place (Optional)", s2Date: "Date & Time", s2Next: "Next Step",
                 s3Title: "3. Submit Report", msgS3: "🛡️ Your identity is strictly protected.", s3Priv: "🔒 Report to HR Privately", s3Pub: "📢 Report & Post to Public Board",
-                succTitle: "Report Saved", msgSucc: "🤍 Thank you for your courage.", succMsg: "Tracking ID:", succDone: "Done", placeholderDesc: "Explain more (Optional)..."
+                succTitle: "Report Saved", msgSucc: "🤍 Thank you for your courage.", succMsg: "Tracking ID:", succDone: "Done", placeholderDesc: "Explain more (Optional)...",
+                helpTitle: "🫂 Talk to a Counselor (Free & Anonymous)", helpDesc: "No login needed. We are here to listen.", helpCall: "Call Helpline (96523 21303)", helpWA: "WhatsApp Didi",
             },
             hi: {
                 navPublic: "📢 सार्वजनिक स्थान", navLogout: "🚪 बाहर जाएं", langBtn: "English",
@@ -149,7 +162,8 @@
                 s1Title: "1. क्या हुआ?", msgS1: "🌸 गहरी सांस लें। किसी को नहीं पता चलेगा कि यह आप हैं।", s1Touch: "छूना", s1Words: "शब्द", s1Threat: "धमकी", s1Other: "अन्य",
                 s2Title: "2. विवरण", msgS2: "🫂 केवल वही साझा करें जो आप बताना चाहते हैं।", s2Who: "यह किसने किया? (नाम - वैकल्पिक)", s2Dept: "विभाग", s2Place: "सटीक स्थान (वैकल्पिक)", s2Date: "तारीख और समय", s2Next: "अगला कदम",
                 s3Title: "3. रिपोर्ट जमा करें", msgS3: "🛡️ आपकी पहचान पूरी तरह से गुप्त है।", s3Priv: "🔒 HR को गुप्त रूप से रिपोर्ट करें", s3Pub: "📢 सार्वजनिक बोर्ड पर पोस्ट करें",
-                succTitle: "रिपोर्ट सहेजी गई", msgSucc: "🤍 आपके साहस के लिए धन्यवाद।", succMsg: "ट्रैकिंग आईडी:", succDone: "पूरा हुआ", placeholderDesc: "अधिक बताएं (वैकल्पिक)..."
+                succTitle: "रिपोर्ट सहेजी गई", msgSucc: "🤍 आपके साहस के लिए धन्यवाद।", succMsg: "ट्रैकिंग आईडी:", succDone: "पूरा हुआ", placeholderDesc: "अधिक बताएं (वैकल्पिक)...",
+                helpTitle: "🫂 काउंसलर से बात करें (मुफ्त और गुप्त)", helpDesc: "कोई लॉगिन नहीं चाहिए। हम सुनने के लिए यहाँ हैं।", helpCall: "हेल्पलाइन पर कॉल करें (9652321303)", helpWA: "व्हाट्सएप दीदी"
             }
         };
 
