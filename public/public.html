@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakhi - Public Board</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { colors: { primary: '#A8DF8E', bgLight: '#F0FFDF', accent: '#FFD8DF', highlight: '#FFAAB8', danger: '#FF4D4D' } } } }</script>
+</head>
+<body class="bg-bgLight text-gray-800 min-h-screen pt-20 pb-6 p-6">
+    
+    <header class="w-full bg-white shadow-sm p-4 flex justify-between items-center fixed top-0 left-0 z-50">
+        <a href="/public.html" class="text-highlight font-bold text-lg flex items-center gap-2">📢 Public Space</a>
+        <button onclick="logout()" class="text-gray-500 font-bold text-lg flex items-center gap-2">🚪 Logout</button>
+    </header>
+
+    <div class="max-w-2xl mx-auto">
+        <div class="mb-8 text-center mt-6">
+            <h1 class="text-3xl font-bold mb-2">📢 Public Board</h1>
+            <p class="text-gray-500 bg-accent rounded-xl py-2 px-4 inline-block font-medium">Anonymous patterns of behavior.</p>
+        </div>
+
+        <div id="feed" class="space-y-4"></div>
+    </div>
+
+    <script>
+        function logout() { sessionStorage.clear(); window.location.href = '/'; }
+
+        // NEW: Function to send support
+        async function supportComplaint(id, btnElement) {
+            const res = await fetch(`/api/public/complaints/${id}/support`, { method: 'POST' });
+            const data = await res.json();
+            if(data.success) {
+                btnElement.innerHTML = `🫂 I stand with you (${data.count})`;
+                btnElement.classList.replace('bg-bgLight', 'bg-highlight');
+                btnElement.classList.replace('text-gray-700', 'text-white');
+                btnElement.disabled = true; 
+            }
+        }
+
+        async function loadPublic() {
+            const res = await fetch('/api/public/complaints');
+            const data = await res.json();
+            const feed = document.getElementById('feed');
+            
+            if(data.length === 0) {
+                feed.innerHTML = '<p class="text-center text-gray-500 mt-10 font-bold">No public reports yet.</p>'; return;
+            }
+
+            data.forEach(c => {
+                feed.innerHTML += `
+                    <div class="bg-white rounded-3xl shadow-sm p-6 border-l-8 border-highlight">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Reported Issue:</p>
+                                <h3 class="font-black text-xl text-gray-800">${c.issueType}</h3>
+                            </div>
+                            <div class="bg-red-50 text-danger px-4 py-2 rounded-xl text-sm font-bold border border-red-100 text-right">
+                                <span class="block text-xs text-red-400 font-normal">Against</span>${c.accusedName}
+                            </div>
+                        </div>
+                        
+                        <button onclick="supportComplaint('${c.complaintId}', this)" class="w-full mt-2 bg-bgLight text-gray-700 font-bold py-3 rounded-xl transition-colors hover:bg-accent">
+                            🫂 I stand with you (${c.supportCount})
+                        </button>
+                    </div>
+                `;
+            });
+        }
+        loadPublic();
+    </script>
+</body>
+</html>

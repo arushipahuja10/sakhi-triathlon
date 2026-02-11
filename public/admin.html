@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakhi Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <script>tailwind.config = { theme: { extend: { colors: { primary: '#A8DF8E', bgLight: '#F0FFDF', accent: '#FFD8DF', highlight: '#FFAAB8', danger: '#FF4D4D' } } } }</script>
+    <script>if(sessionStorage.getItem('isAdmin') !== 'true') window.location.href = '/';</script>
+</head>
+<body class="bg-bgLight text-gray-800 min-h-screen pt-20 pb-6 p-6">
+    
+    <header class="w-full bg-white shadow-sm p-4 flex justify-between items-center fixed top-0 left-0 z-50">
+        <a href="/public.html" class="text-highlight font-bold text-lg flex items-center gap-2">📢 Public Space</a>
+        <button onclick="logout()" class="text-gray-500 font-bold text-lg flex items-center gap-2">🚪 Logout</button>
+    </header>
+
+    <div class="max-w-6xl mx-auto mt-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">🌸 Admin Dashboard</h1>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-3xl shadow-sm flex flex-col items-center">
+                <h2 class="font-bold text-gray-600 mb-4">Hotspot: Departments</h2>
+                <div class="w-64 h-64"><canvas id="deptChart"></canvas></div>
+            </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm flex flex-col items-center">
+                <h2 class="font-bold text-gray-600 mb-4">Hotspot: Accused Persons</h2>
+                <div class="w-64 h-64"><canvas id="nameChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm p-6 overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b-2 border-bgLight text-sm text-gray-500">
+                        <th class="py-3 px-4">ID & Vis</th>
+                        <th class="py-3 px-4">Accused & Loc</th>
+                        <th class="py-3 px-4">Issue Details</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function logout() { sessionStorage.clear(); window.location.href = '/'; }
+
+        // NEW: Chart Rendering Logic
+        let deptChartInstance = null; let nameChartInstance = null;
+        function renderCharts(data) {
+            const deptCounts = {}; const nameCounts = {};
+            data.forEach(c => {
+                if(c.department && c.department !== 'Unknown') deptCounts[c.department] = (deptCounts[c.department] || 0) + 1;
+                if(c.accusedName && c.accusedName !== 'Unknown') nameCounts[c.accusedName] = (nameCounts[c.accusedName] || 0) + 1;
+            });
+            const colors = ['#FFAAB8', '#A8DF8E', '#FFD8DF', '#FF4D4D', '#F0FFDF'];
+
+            if(deptChartInstance) deptChartInstance.destroy();
+            deptChartInstance = new Chart(document.getElementById('deptChart'), { type: 'pie', data: { labels: Object.keys(deptCounts), datasets: [{ data: Object.values(deptCounts), backgroundColor: colors }] } });
+
+            if(nameChartInstance) nameChartInstance.destroy();
+            nameChartInstance = new Chart(document.getElementById('nameChart'), { type: 'doughnut', data: { labels: Object.keys(nameCounts), datasets: [{ data: Object.values(nameCounts), backgroundColor: colors }] } });
+        }
+
+        async function loadComplaints() {
+            const res = await fetch('/api/admin/complaints');
+            const data = await res.json();
+            
+            renderCharts(data); // Draw charts!
+
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            data.forEach(c => {
+                const isEscalated = c.status === 'Escalated';
+                let statusClass = 'bg-bgLight text-primary border-primary';
+                if(isEscalated) statusClass = 'bg-red-100 text-danger border-danger';
+                if(c.status === 'Unresolved') statusClass = 'bg-gray-200 text-gray-600 border-gray-400';
+                
+                const visibility = c.isPublic ? '<span class="text-xs bg-highlight text-white px-2 py-1 rounded-lg">Public</span>' : '<span class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-lg">Private</span>';
+
+                // NEW: Show Audio player if it's an emergency report
+                const audioHtml = c.audioData ? `<audio controls src="${c.audioData}" class="mt-2 h-8 w-full"></audio>` : `<div class="text-sm text-gray-600 mt-1 italic w-48 truncate">${c.description || '-'}</div>`;
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-4 px-4"><div class="font-bold text-lg">${c.complaintId}</div><div class="mb-1">${visibility}</div></td>
+                        <td class="py-4 px-4"><div class="font-bold text-danger">${c.accusedName || 'Unknown'}</div><div class="text-sm text-gray-600">${c.department}</div></td>
+                        <td class="py-4 px-4"><div class="font-semibold">${c.issueType}</div>${audioHtml}</td>
+                        <td class="py-4 px-4"><span class="px-3 py-1 rounded-full border font-bold text-sm ${statusClass}">${c.status}</span></td>
+                        <td class="py-4 px-4">
+                            <select onchange="updateStatus('${c.complaintId}', this.value)" class="border border-gray-300 rounded-lg p-2 text-sm outline-none bg-white">
+                                <option disabled selected>Change...</option><option value="Under Review">Under Review</option><option value="Resolved">Resolved</option><option value="Unresolved">Unresolved (Closed)</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function updateStatus(id, newStatus) {
+            await fetch('/api/admin/complaints/' + id, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({status: newStatus}) });
+            loadComplaints();
+        }
+
+        loadComplaints();
+    </script>
+</body>
+</html>

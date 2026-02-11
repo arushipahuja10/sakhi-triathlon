@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Status - Sakhi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#A8DF8E', bgLight: '#F0FFDF', accent: '#FFD8DF', highlight: '#FFAAB8', danger: '#FF4D4D' } } } }
+    </script>
+</head>
+<body class="bg-bgLight text-gray-800 min-h-screen p-6 flex flex-col items-center justify-center">
+
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-sm p-8 text-center">
+        <h1 class="text-2xl font-bold mb-2">Track Report</h1>
+        <p class="text-gray-500 mb-6">Enter your Complaint ID (e.g., SV-1234)</p>
+        
+        <input type="text" id="track-id" class="w-full border-2 border-primary rounded-2xl text-center text-2xl py-3 mb-6 outline-none bg-bgLight uppercase" placeholder="SV-XXXX">
+        <button onclick="checkStatus()" class="w-full bg-primary text-white text-xl font-bold py-4 rounded-2xl shadow-sm mb-6">Check Status</button>
+        
+        <div id="result" class="hidden rounded-2xl p-6 border-2">
+            <h3 class="font-bold text-lg mb-1">Current Status:</h3>
+            <span id="status-badge" class="text-2xl font-black tracking-wide"></span>
+        </div>
+    </div>
+
+    <script>
+        async function checkStatus() {
+            const id = document.getElementById('track-id').value.trim();
+            if(!id) return;
+            
+            const res = await fetch('/api/track/' + id);
+            const data = await res.json();
+            const resultDiv = document.getElementById('result');
+            const badge = document.getElementById('status-badge');
+            
+            resultDiv.classList.remove('hidden', 'border-primary', 'border-danger', 'bg-bgLight', 'bg-red-50');
+            badge.classList.remove('text-primary', 'text-danger', 'text-gray-600');
+
+            if(data.success) {
+                badge.innerText = data.status;
+                if(data.status === 'Escalated') {
+                    resultDiv.classList.add('border-danger', 'bg-red-50');
+                    badge.classList.add('text-danger');
+                } else {
+                    resultDiv.classList.add('border-primary', 'bg-bgLight');
+                    badge.classList.add('text-primary');
+                }
+            } else {
+                badge.innerText = "Not Found";
+                resultDiv.classList.add('border-gray-300');
+                badge.classList.add('text-gray-600');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sakhi - Safe Reporting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { colors: { primary: '#A8DF8E', bgLight: '#F0FFDF', accent: '#FFD8DF', highlight: '#FFAAB8', danger: '#FF4D4D' } } } }</script>
+    <style> 
+        body { font-family: system-ui, sans-serif; } .step { display: none; } .step.active { display: block; } 
+        .recording { animation: pulse 1.5s infinite; } 
+        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 77, 77, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); } }
+    </style>
+</head>
+<body class="bg-bgLight text-gray-800 min-h-screen pt-20 pb-6 flex flex-col items-center">
+
+    <header class="w-full bg-white shadow-sm p-4 flex justify-between items-center fixed top-0 left-0 z-50">
+        <a href="/public.html" id="navPublic" class="text-highlight font-bold text-sm flex items-center gap-2">📢 Public Space</a>
+        <div class="flex items-center gap-4">
+            <button onclick="toggleLang()" id="langBtn" class="bg-primary text-white px-3 py-1 rounded-lg font-bold text-sm shadow-sm hover:opacity-90 transition">हिंदी</button>
+            <button onclick="logout()" id="navLogout" class="text-gray-500 font-bold text-sm flex items-center gap-2">🚪 Logout</button>
+        </div>
+    </header>
+
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-sm p-8 mt-4">
+        
+        <div id="step-role" class="step active text-center">
+            <h1 class="text-3xl font-bold text-gray-700 mb-2">🌸 Sakhi</h1>
+            <p id="safeText" class="text-gray-500 bg-accent rounded-xl py-2 px-4 inline-block font-medium mb-6">You are safe here.</p>
+            
+            <div class="bg-red-50 border-2 border-danger rounded-2xl p-4 mb-6 relative">
+                <h3 id="emgTitle" class="text-danger font-bold text-sm mb-1">🚨 Emergency Help (No Login)</h3>
+                <p id="emgDesc" class="text-xs text-red-400 mb-3">Tap to record. Sends directly to HR.</p>
+                <button id="recordBtn" class="bg-danger text-white rounded-full w-14 h-14 text-2xl shadow-md flex items-center justify-center mx-auto transition-all">🎤</button>
+                <p id="emgStatus" class="text-danger text-xs font-bold mt-2 hidden">Recording... Tap to stop.</p>
+            </div>
+
+            <h2 id="roleTitle" class="text-xl font-bold mb-4">Who is logging in?</h2>
+            <button onclick="goToStep('auth-worker')" id="roleWorker" class="w-full bg-primary text-white text-xl font-bold py-4 rounded-3xl mb-3 shadow-sm">👩‍🏭 Worker</button>
+            <button onclick="goToStep('auth-admin')" id="roleAdmin" class="w-full bg-accent text-gray-800 text-xl font-bold py-4 rounded-3xl shadow-sm">💼 Admin</button>
+        </div>
+
+        <div id="step-auth-worker" class="step text-center">
+            <h2 id="wLoginTitle" class="text-2xl font-bold mb-6">Worker Login</h2>
+            <p id="wLoginDesc" class="mb-4 text-gray-600">Enter Worker Code:</p>
+            <input type="text" id="worker-code" class="w-full border-2 border-primary rounded-2xl text-center text-2xl py-3 mb-4 bg-bgLight outline-none">
+            <button onclick="loginWorker()" id="wLoginBtn" class="w-full bg-primary text-white text-xl font-bold py-4 rounded-2xl mb-4">Enter</button>
+            <button onclick="goToStep('role')" id="btnBack1" class="text-gray-400 font-bold">Back</button>
+            <p id="worker-error" class="text-danger mt-3 hidden font-bold">Invalid Code / अमान्य कोड</p>
+        </div>
+
+        <div id="step-auth-admin" class="step text-center">
+            <h2 class="text-2xl font-bold mb-6">Admin Login</h2>
+            <p class="mb-4 text-gray-600">Enter Admin Password:</p>
+            <input type="password" id="admin-id" class="w-full border-2 border-primary rounded-2xl text-center text-2xl py-3 mb-4 bg-bgLight outline-none">
+            <button onclick="loginAdmin()" class="w-full bg-highlight text-white text-xl font-bold py-4 rounded-2xl mb-4">Access Dashboard</button>
+            <button onclick="goToStep('role')" class="text-gray-400 font-bold">Back</button>
+            <p id="admin-error" class="text-danger mt-3 hidden">Access Denied.</p>
+        </div>
+
+        <div id="step-dashboard" class="step text-center">
+            <h2 id="dashTitle" class="text-xl font-bold mb-2">How can we help?</h2>
+            <p id="msgDash" class="text-sm text-green-600 font-bold bg-bgLight py-2 rounded-xl mb-6">🤝 We are here to support you.</p>
+            <button onclick="goToStep(1)" id="dashFile" class="w-full bg-primary text-white text-xl font-bold py-6 rounded-3xl mb-4">📝 File a New Report</button>
+            <button onclick="loadHistory()" id="dashHist" class="w-full bg-accent text-gray-800 text-xl font-bold py-6 rounded-3xl">📂 View My History</button>
+        </div>
+
+        <div id="step-history" class="step">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="histTitle" class="text-xl font-bold">My Reports</h2>
+                <button onclick="goToStep('dashboard')" id="btnBack2" class="text-primary font-bold">Back</button>
+            </div>
+            <div id="history-container" class="space-y-4 max-h-96 overflow-y-auto"></div>
+        </div>
+
+        <div id="step-1" class="step">
+            <h2 id="s1Title" class="text-xl font-bold mb-2 text-center">1. What happened?</h2>
+            <p id="msgS1" class="text-sm text-center text-green-600 font-bold mb-6">🌸 Take a deep breath. No one will know it's you.</p>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="saveData('issueType', 'Inappropriate Touch', 2)" class="bg-bgLight border border-primary p-6 rounded-2xl text-center hover:bg-primary hover:text-white"><span class="text-4xl block mb-2">✋</span><b id="s1Touch">Touch</b></button>
+                <button onclick="saveData('issueType', 'Verbal Harassment', 2)" class="bg-bgLight border border-primary p-6 rounded-2xl text-center hover:bg-primary hover:text-white"><span class="text-4xl block mb-2">🗣️</span><b id="s1Words">Words</b></button>
+                <button onclick="saveData('issueType', 'Threat / Intimidation', 2)" class="bg-bgLight border border-primary p-6 rounded-2xl text-center hover:bg-primary hover:text-white"><span class="text-4xl block mb-2">⚠️</span><b id="s1Threat">Threat</b></button>
+                <button onclick="saveData('issueType', 'Other', 2)" class="bg-bgLight border border-primary p-6 rounded-2xl text-center hover:bg-primary hover:text-white"><span class="text-4xl block mb-2">➕</span><b id="s1Other">Other</b></button>
+            </div>
+        </div>
+
+        <div id="step-2" class="step">
+            <h2 id="s2Title" class="text-xl font-bold mb-2 text-center">2. Details</h2>
+            <p id="msgS2" class="text-sm text-center text-green-600 font-bold mb-6">🫂 Share only what you feel comfortable sharing.</p>
+            <label id="s2Who" class="font-bold text-sm text-gray-600">Who did this? (Name - Optional)</label>
+            <input type="text" id="accusedName" class="w-full border-2 border-primary rounded-xl p-3 mb-4 bg-bgLight outline-none">
+            <label id="s2Dept" class="font-bold text-sm text-gray-600">Department</label>
+            <select id="dept" class="w-full border-2 border-primary rounded-xl p-3 mb-4 bg-bgLight outline-none"><option>Assembly</option><option>Packaging</option><option>Canteen</option></select>
+            <label id="s2Place" class="font-bold text-sm text-gray-600">Exact Place (Optional)</label>
+            <input type="text" id="exactPlace" class="w-full border-2 border-primary rounded-xl p-3 mb-4 bg-bgLight outline-none">
+            <label id="s2Date" class="font-bold text-sm text-gray-600">Date & Time</label>
+            <div class="flex gap-2 mb-6">
+                <input type="date" id="exactDate" class="w-full border-2 border-primary rounded-xl p-2 bg-bgLight outline-none">
+                <input type="time" id="exactTime" class="w-full border-2 border-primary rounded-xl p-2 bg-bgLight outline-none">
+            </div>
+            <button onclick="goToStep(3)" id="s2Next" class="w-full bg-highlight text-white text-lg font-bold py-3 rounded-2xl">Next Step</button>
+        </div>
+
+        <div id="step-3" class="step">
+            <h2 id="s3Title" class="text-xl font-bold mb-2 text-center">3. Submit Report</h2>
+            <p id="msgS3" class="text-sm text-center text-green-600 font-bold mb-6">🛡️ Your identity is strictly protected.</p>
+            <textarea id="desc" class="w-full border-2 border-primary rounded-xl p-3 bg-bgLight mb-6 outline-none" rows="3" placeholder="Explain more (Optional)..."></textarea>
+            <div class="flex flex-col gap-4">
+                <button onclick="submitComplaint(false)" id="s3Priv" class="w-full bg-primary text-white text-lg font-bold py-4 rounded-2xl">🔒 Report to HR Privately</button>
+                <button onclick="submitComplaint(true)" id="s3Pub" class="w-full bg-highlight text-white text-lg font-bold py-4 rounded-2xl">📢 Report & Post to Public Board</button>
+            </div>
+        </div>
+
+        <div id="step-success" class="step text-center">
+            <div class="text-6xl mb-4">✅</div>
+            <h2 id="succTitle" class="text-2xl font-bold mb-2">Report Saved</h2>
+            <p id="msgSucc" class="text-green-600 font-bold mb-2">🤍 Thank you for your courage.</p>
+            <p id="succMsg" class="text-gray-600 mb-2">Tracking ID:</p>
+            <div id="final-id" class="bg-bgLight border-2 border-primary text-3xl font-bold py-4 rounded-2xl mb-6 tracking-widest text-gray-800"></div>
+            <button onclick="goToStep('dashboard')" id="succDone" class="w-full bg-primary text-white text-lg font-bold py-3 rounded-2xl">Done</button>
+        </div>
+    </div>
+
+    <script>
+        let data = { workerCode: '' };
+        let currentLang = 'en';
+
+        // Dictionary kept exactly the same, just added Emergency translations
+        const dict = {
+            en: {
+                navPublic: "📢 Public Space", navLogout: "🚪 Logout", langBtn: "हिंदी",
+                safeText: "You are safe here.", emgTitle: "🚨 Emergency Help (No Login)", emgDesc: "Tap to record. Sends directly to HR.", roleTitle: "Who is logging in?",
+                roleWorker: "👩‍🏭 Worker", roleAdmin: "💼 Admin",
+                wLoginTitle: "Worker Login", wLoginDesc: "Enter Worker Code:", wLoginBtn: "Enter", btnBack1: "Back", btnBack2: "Back",
+                dashTitle: "How can we help?", msgDash: "🤝 We are here to support you.", dashFile: "📝 File a New Report", dashHist: "📂 View My History",
+                histTitle: "My Reports",
+                s1Title: "1. What happened?", msgS1: "🌸 Take a deep breath. No one will know it's you.", s1Touch: "Touch", s1Words: "Words", s1Threat: "Threat", s1Other: "Other",
+                s2Title: "2. Details", msgS2: "🫂 Share only what you feel comfortable sharing.", s2Who: "Who did this? (Name - Optional)", s2Dept: "Department", s2Place: "Exact Place (Optional)", s2Date: "Date & Time", s2Next: "Next Step",
+                s3Title: "3. Submit Report", msgS3: "🛡️ Your identity is strictly protected.", s3Priv: "🔒 Report to HR Privately", s3Pub: "📢 Report & Post to Public Board",
+                succTitle: "Report Saved", msgSucc: "🤍 Thank you for your courage.", succMsg: "Tracking ID:", succDone: "Done", placeholderDesc: "Explain more (Optional)..."
+            },
+            hi: {
+                navPublic: "📢 सार्वजनिक स्थान", navLogout: "🚪 बाहर जाएं", langBtn: "English",
+                safeText: "आप यहाँ सुरक्षित हैं।", emgTitle: "🚨 आपातकालीन मदद (बिना लॉगिन)", emgDesc: "रिकॉर्ड करने के लिए टैप करें। सीधे HR को जाता है।", roleTitle: "कौन लॉगिन कर रहा है?",
+                roleWorker: "👩‍🏭 कर्मचारी", roleAdmin: "💼 एडमिन",
+                wLoginTitle: "कर्मचारी लॉगिन", wLoginDesc: "अपना वर्कर कोड दर्ज करें:", wLoginBtn: "दर्ज करें", btnBack1: "पीछे", btnBack2: "पीछे",
+                dashTitle: "हम आपकी कैसे मदद करें?", msgDash: "🤝 हम आपकी सहायता के लिए यहाँ हैं।", dashFile: "📝 नई शिकायत दर्ज करें", dashHist: "📂 मेरा इतिहास देखें",
+                histTitle: "मेरी रिपोर्ट",
+                s1Title: "1. क्या हुआ?", msgS1: "🌸 गहरी सांस लें। किसी को नहीं पता चलेगा कि यह आप हैं।", s1Touch: "छूना", s1Words: "शब्द", s1Threat: "धमकी", s1Other: "अन्य",
+                s2Title: "2. विवरण", msgS2: "🫂 केवल वही साझा करें जो आप बताना चाहते हैं।", s2Who: "यह किसने किया? (नाम - वैकल्पिक)", s2Dept: "विभाग", s2Place: "सटीक स्थान (वैकल्पिक)", s2Date: "तारीख और समय", s2Next: "अगला कदम",
+                s3Title: "3. रिपोर्ट जमा करें", msgS3: "🛡️ आपकी पहचान पूरी तरह से गुप्त है।", s3Priv: "🔒 HR को गुप्त रूप से रिपोर्ट करें", s3Pub: "📢 सार्वजनिक बोर्ड पर पोस्ट करें",
+                succTitle: "रिपोर्ट सहेजी गई", msgSucc: "🤍 आपके साहस के लिए धन्यवाद।", succMsg: "ट्रैकिंग आईडी:", succDone: "पूरा हुआ", placeholderDesc: "अधिक बताएं (वैकल्पिक)..."
+            }
+        };
+
+        function toggleLang() { currentLang = currentLang === 'en' ? 'hi' : 'en'; applyLanguage(); }
+        function applyLanguage() {
+            const t = dict[currentLang];
+            Object.keys(t).forEach(key => { const el = document.getElementById(key); if (el) el.innerText = t[key]; });
+            document.getElementById('desc').placeholder = t.placeholderDesc;
+        }
+
+        function logout() { sessionStorage.clear(); window.location.href = '/'; }
+
+        // --- NEW: EMERGENCY AUDIO LOGIC ---
+        let mediaRecorder; let audioChunks = [];
+        const recordBtn = document.getElementById('recordBtn');
+        const emgStatus = document.getElementById('emgStatus');
+
+        recordBtn.addEventListener('click', async () => {
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+                    audioChunks = [];
+                    recordBtn.classList.add('recording');
+                    emgStatus.classList.remove('hidden');
+
+                    mediaRecorder.addEventListener("dataavailable", event => { audioChunks.push(event.data); });
+                    mediaRecorder.addEventListener("stop", () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.readAsDataURL(audioBlob);
+                        reader.onloadend = async () => {
+                            const res = await fetch('/api/emergency-audio', {
+                                method: 'POST', headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({ audioData: reader.result })
+                            });
+                            const result = await res.json();
+                            document.getElementById('final-id').innerText = result.complaintId;
+                            goToStep('success');
+                        };
+                    });
+                } catch (err) { alert("Please allow microphone access."); }
+            } else if (mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                recordBtn.classList.remove('recording');
+                emgStatus.innerText = "Sending securely...";
+            }
+        });
+
+        // Your existing JS functions
+        async function loginWorker() {
+            const code = document.getElementById('worker-code').value;
+            const res = await fetch('/api/validate-code', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({code}) });
+            if((await res.json()).success) { data.workerCode = code; goToStep('dashboard'); }
+            else document.getElementById('worker-error').classList.remove('hidden');
+        }
+
+        async function loginAdmin() {
+            const adminId = document.getElementById('admin-id').value;
+            const res = await fetch('/api/admin/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({adminId}) });
+            if((await res.json()).success) { sessionStorage.setItem('isAdmin', 'true'); window.location.href = '/admin.html'; }
+            else document.getElementById('admin-error').classList.remove('hidden');
+        }
+
+        async function loadHistory() {
+            goToStep('history');
+            const res = await fetch('/api/complaints/history/' + data.workerCode);
+            const history = await res.json();
+            const container = document.getElementById('history-container');
+            container.innerHTML = history.length === 0 ? '<p class="text-gray-500 text-center py-4">No reports found.</p>' : '';
+            history.forEach(c => {
+                container.innerHTML += `<div class="bg-bgLight border border-primary p-4 rounded-2xl mb-3"><div class="flex justify-between font-bold mb-1"><span>${c.complaintId}</span><span class="${c.status === 'Escalated' ? 'text-danger' : 'text-primary'}">${c.status}</span></div><div class="text-sm text-gray-600"><p>Issue: ${c.issueType}</p><p>Against: ${c.accusedName || 'N/A'}</p></div></div>`;
+            });
+        }
+
+        function saveData(key, value, nextStep) { data[key] = value; goToStep(nextStep); }
+        function goToStep(step) {
+            document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+            document.getElementById('step-' + step).classList.add('active');
+        }
+
+        async function submitComplaint(isPublic) {
+            data.department = document.getElementById('dept').value;
+            data.exactPlace = document.getElementById('exactPlace').value;
+            data.accusedName = document.getElementById('accusedName').value;
+            data.exactDate = document.getElementById('exactDate').value;
+            data.exactTime = document.getElementById('exactTime').value;
+            data.description = document.getElementById('desc').value;
+            data.isPublic = isPublic;
+            
+            const res = await fetch('/api/complaints', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            document.getElementById('final-id').innerText = (await res.json()).complaintId;
+            goToStep('success');
+            data = { workerCode: data.workerCode }; 
+            document.querySelectorAll('input:not(#worker-code), textarea').forEach(el => el.value = '');
+        }
+    </script>
+</body>
+</html>
