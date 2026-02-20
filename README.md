@@ -55,6 +55,6 @@ Sakhi aims to transform factory cultures from the bottom up, proving that a safe
 
 ### 📝 Note to Judges
 * **Admin Password:** `ADMIN123`
-* **Worker Demo Code:** `1111`, `2222`, `3333`
+* **Worker Demo Codes:** `1111`, `2222`, `3333`
 
 ---
